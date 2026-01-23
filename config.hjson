@@ -186,7 +186,7 @@ exec sp_executesql @SQL
             "plural": "Databases",
             "query": '''
 SELECT CAST(database_id AS VARCHAR(4)) + '/' + name + '/' + @@SERVERNAME, name, @@SERVERNAME AS ServerName 
-FROM sys.databases WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0
+FROM sys.databases WHERE database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0
             ''',
             "singular": "Database"
         }
