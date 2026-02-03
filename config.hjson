@@ -34,9 +34,10 @@
                 }
             ],
             "icon": "person",
-            "id": "principal",
-            "plural": "Principals",
+            "id": "user",
+            "plural": "Users",
             "query": '''
+-- TODO: hier alle types user principal overhouden afgezien van DATABASE_ROLE
 DECLARE @SQL NVARCHAR(MAX) = N'';
 
 SELECT @SQL = STUFF((
@@ -55,7 +56,65 @@ SELECT FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE D
 
 exec sp_executesql @SQL
             ''',
-            "singular": "Principal"
+            "singular": "User"
+        },
+        {
+            "attributes": [
+                {
+                    "description": "",
+                    "id": "authenticationType",
+                    "name": "Authentication Type",
+                    "type": "string"
+                },
+                {
+                    "description": "",
+                    "id": "createdAt",
+                    "name": "Created at",
+                    "type": "dateTime"
+                },
+                {
+                    "description": "",
+                    "id": "database",
+                    "name": "Database",
+                    "type": "string"
+                },
+                {
+                    "description": "",
+                    "id": "lastModifiedAt",
+                    "name": "Last modified at",
+                    "type": "dateTime"
+                },
+                {
+                    "description": "",
+                    "id": "type",
+                    "name": "Type",
+                    "type": "string"
+                }
+            ],
+            "icon": "person",
+            "id": "databaseRole",
+            "plural": "Database Roles",
+            "query": '''
+-- TODO: hier enkel het type principal toevoegen "DATABASE_ROLE"
+DECLARE @SQL NVARCHAR(MAX) = N'';
+
+SELECT @SQL = STUFF((
+SELECT ' UNION ALL
+SELECT FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', principal_id),
+               name COLLATE DATABASE_DEFAULT,
+               authentication_type_desc,
+               create_date,
+               ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ',
+               modify_date,
+               type_desc
+        FROM ' + QUOTENAME(d.name) + '.sys.database_principals'
+        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0
+        FOR XML PATH(''), TYPE
+        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');
+
+exec sp_executesql @SQL
+            ''',
+            "singular": "Database Role"
         },
         {
             "attributes": [
@@ -79,8 +138,8 @@ exec sp_executesql @SQL
                 }
             ],
             "icon": "vpn_key",
-            "id": "permission",
-            "plural": "Permissions",
+            "id": "databasePermission",
+            "plural": "Database Permissions",
             "query": '''
 DECLARE @SQL NVARCHAR(MAX) = N'';
 
@@ -99,7 +158,7 @@ FROM ' + QUOTENAME(d.name) + '.sys.database_permissions'
 
 exec sp_executesql @SQL
             ''',
-            "singular": "Permission"
+            "singular": "Database Permission"
         },
         {
             "attributes": [
@@ -189,6 +248,46 @@ SELECT CAST(database_id AS VARCHAR(4)) + '/' + name + '/' + @@SERVERNAME, name, 
 FROM sys.databases WHERE database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0
             ''',
             "singular": "Database"
+        },
+        {
+            "attributes": [],
+            "icon": "dataset",
+            "id": "login",
+            "plural": "Logins",
+            "query": '''
+-- TODO list all logins with useful attributes
+            ''',
+            "singular": "Login"
+        },
+        {
+            "attributes": [],
+            "icon": "dataset",
+            "id": "serverRole",
+            "plural": "Server Roles",
+            "query": '''
+-- TODO list all server roles with useful attributes
+            ''',
+            "singular": "Server Role"
+        },
+        {
+            "attributes": [],
+            "icon": "dataset",
+            "id": "serverPermission",
+            "plural": "Server Permissions",
+            "query": '''
+-- TODO list all server permissions with useful attributes
+            ''',
+            "singular": "Server Permission"
+        },
+        {
+            "attributes": [],
+            "icon": "dataset",
+            "id": "instance",
+            "plural": "Instances",
+            "query": '''
+-- TODO list all server instance with useful attributes
+            ''',
+            "singular": "Instance"
         }
     ],
     "insightsSourceId": "TODO",
@@ -200,8 +299,9 @@ FROM sys.databases WHERE database_id <> 2 and state_desc = 'ONLINE' and is_read_
     "relationshipTypes": [
         {
             "attributes": [],
-            "from": "principal",
+            "from": "user",
             "query": '''
+-- TODO nakijken of dit klopt voor enkel users->permissions, niet roles->permissions
 DECLARE @SQL NVARCHAR(MAX) = N'';
 
 SELECT @SQL = STUFF((
@@ -216,12 +316,13 @@ FROM ' + QUOTENAME(d.name) + '.sys.database_permissions'
 
 exec sp_executesql @SQL
             ''',
-            "to": "permission"
+            "to": "databasePermission"
         },
         {
             "attributes": [],
-            "from": "principal",
+            "from": "user",
             "query": '''
+-- TODO: nakijken dat deze query klopt voor user->databaseRole
 DECLARE @SQL NVARCHAR(MAX) = N'';
 
 SELECT @SQL = STUFF((
@@ -235,11 +336,32 @@ SELECT FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE D
 
 exec sp_executesql @SQL
             ''',
-            "to": "principal"
+            "to": "databaseRole"
         },
         {
             "attributes": [],
-            "from": "permission",
+            "from": "databaseRole",
+            "query": '''
+-- TODO nakijken of dit klopt voor enkel databaseRoles->permissions, niet users->permissions
+DECLARE @SQL NVARCHAR(MAX) = N'';
+
+SELECT @SQL = STUFF((
+SELECT ' UNION ALL
+SELECT           
+    FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME,  ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', grantee_principal_id),           
+    FORMATMESSAGE(''%s/%s/%d/%d/%d/%d/%d/%s/%s'', @@SERVERNAME,  ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', class, grantee_principal_id, grantor_principal_id, major_id, minor_id, type, state)
+FROM ' + QUOTENAME(d.name) + '.sys.database_permissions'
+        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0
+        FOR XML PATH(''), TYPE
+        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');
+
+exec sp_executesql @SQL
+            ''',
+            "to": "databasePermission"
+        },
+        {
+            "attributes": [],
+            "from": "databasePermission",
             "query": '''
 DECLARE @SQL NVARCHAR(MAX) = N'';
 
@@ -259,7 +381,7 @@ exec sp_executesql @SQL
         },
         {
             "attributes": [],
-            "from": "permission",
+            "from": "databasePermission",
             "query": '''
 DECLARE @SQL NVARCHAR(MAX) = N'';
 
@@ -293,6 +415,54 @@ SELECT FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE D
         ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');
  
 exec sp_executesql @SQL
+            ''',
+            "to": "database"
+        },
+        {
+            "attributes": [],
+            "from": "user",
+            "query": '''
+-- TODO: list relationships from user->login
+            ''',
+            "to": "login"
+        },
+        {
+            "attributes": [],
+            "from": "login",
+            "query": '''
+-- TODO: list relationships from login->serverRole
+            ''',
+            "to": "serverRole"
+        },
+        {
+            "attributes": [],
+            "from": "login",
+            "query": '''
+-- TODO: list relationships from login->serverPermission
+            ''',
+            "to": "serverPermission"
+        },
+        {
+            "attributes": [],
+            "from": "serverRole",
+            "query": '''
+-- TODO: list relationships from serverRole->instance
+            ''',
+            "to": "instance"
+        },
+        {
+            "attributes": [],
+            "from": "serverPermission",
+            "query": '''
+-- TODO: list relationships from serverPermission->instance
+            ''',
+            "to": "instance"
+        },
+        {
+            "attributes": [],
+            "from": "instance",
+            "query": '''
+-- TODO: list relationships from instance->database
             ''',
             "to": "database"
         }
