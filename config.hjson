@@ -251,7 +251,38 @@ FROM sys.databases WHERE database_id <> 2 and state_desc = 'ONLINE' and is_read_
             "singular": "Database"
         },
         {
-            "attributes": [],
+            "attributes": [
+                {
+                    "description": "",
+                    "id": "sid",
+                    "name": "SID",
+                    "type": "string"
+                },
+                {
+                    "description": "",
+                    "id": "principal_id",
+                    "name": "Principal ID",
+                    "type": "string"
+                },
+                {
+                    "description": "",
+                    "id": "createdAt",
+                    "name": "Created at",
+                    "type": "dateTime"
+                },
+                {
+                    "description": "",
+                    "id": "type",
+                    "name": "Type",
+                    "type": "string"
+                },
+                {
+                    "description": "",
+                    "id": "is_disabled",
+                    "name": "Is Disabled",
+                    "type": "boolean"
+                }
+            ],
             "icon": "dataset",
             "id": "login",
             "plural": "Logins",
@@ -274,7 +305,38 @@ exec sp_executesql @SQL
             "singular": "Login"
         },
         {
-            "attributes": [],
+            "attributes": [
+                {
+                    "description": "",
+                    "id": "sid",
+                    "name": "SID",
+                    "type": "string"
+                },
+                {
+                    "description": "",
+                    "id": "principal_id",
+                    "name": "Principal ID",
+                    "type": "string"
+                },
+                {
+                    "description": "",
+                    "id": "createdAt",
+                    "name": "Created at",
+                    "type": "dateTime"
+                },
+                {
+                    "description": "",
+                    "id": "type",
+                    "name": "Type",
+                    "type": "string"
+                },
+                {
+                    "description": "",
+                    "id": "is_disabled",
+                    "name": "Is Disabled",
+                    "type": "boolean"
+                }
+            ],
             "icon": "dataset",
             "id": "serverRole",
             "plural": "Server Roles",
@@ -297,7 +359,14 @@ exec sp_executesql @SQL
             "singular": "Server Role"
         },
         {
-            "attributes": [],
+            "attributes": [
+                {
+                    "description": "",
+                    "id": "state",
+                    "name": "State",
+                    "type": "string"
+                }
+            ],
             "icon": "dataset",
             "id": "serverPermission",
             "plural": "Server Permissions",
@@ -362,7 +431,6 @@ exec sp_executesql @SQL
             "attributes": [],
             "from": "user",
             "query": '''
--- DONE: VK: Aangepast: principal_type <> 'R' om roles uit de role members te houden. nakijken dat deze query klopt voor user->databaseRole VK: hier zal de query verder voor uitgebouwd moeten worden. Nu komen ook roles die lid zijn van een andere rol uit deze query
 DECLARE @SQL NVARCHAR(MAX) = N'';
 
 SELECT @SQL = STUFF((
