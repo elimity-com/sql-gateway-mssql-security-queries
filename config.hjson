@@ -4,6 +4,12 @@
             "attributes": [
                 {
                     "description": "",
+                    "id": "loginName",
+                    "name": "Login Name",
+                    "type": "string"
+                },
+                {
+                    "description": "",
                     "id": "authenticationType",
                     "name": "Authentication Type",
                     "type": "string"
@@ -42,18 +48,22 @@ DECLARE @SQL NVARCHAR(MAX) = N'';
 SELECT @SQL = STUFF((
 SELECT ' UNION ALL
 SELECT FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', principal_id),
-               name COLLATE DATABASE_DEFAULT,
+               p.name COLLATE DATABASE_DEFAULT,
+               l.name AS login_name,
                authentication_type_desc,
                create_date,
                ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ',
                modify_date,
                type_desc
-        FROM ' + QUOTENAME(d.name) + '.sys.database_principals WHERE type_desc <> ''DATABASE_ROLE'''
+        FROM ' + QUOTENAME(d.name) + '.sys.database_principals p
+        LEFT JOIN sys.syslogins l on p.sid = l.sid
+        WHERE type_desc <> ''DATABASE_ROLE'''
         from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0
         FOR XML PATH(''), TYPE
         ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');
 
 exec sp_executesql @SQL
+
             ''',
             "singular": "User"
         },
