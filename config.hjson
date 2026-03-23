@@ -302,7 +302,7 @@ DECLARE @SQL NVARCHAR(MAX) = N'';
 SELECT @SQL  = '
 SELECT FORMATMESSAGE(''%s/%d'', @@SERVERNAME,  principal_id),
                name COLLATE DATABASE_DEFAULT as ''Login_name'',
-               NULL,
+               CONVERT(VARCHAR(200), sid, 1),
 			   principal_id,
                create_date,             
                type_desc,
@@ -356,7 +356,7 @@ DECLARE @SQL NVARCHAR(MAX) = N'';
 SELECT @SQL  = '
 SELECT FORMATMESSAGE(''%s/%d'', @@SERVERNAME,  principal_id),
                name COLLATE DATABASE_DEFAULT as ''Login_name'',
-               NULL,
+               CONVERT(VARCHAR(200), sid, 1),
 			   principal_id,
                create_date,             
                type_desc,
