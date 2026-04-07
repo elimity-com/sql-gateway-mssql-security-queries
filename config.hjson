@@ -385,7 +385,7 @@ DECLARE @SQL NVARCHAR(MAX) = N'';
 
 SELECT @SQL  = '
 SELECT DISTINCT 
-    FORMATMESSAGE(''%s/%s'', @@SERVERNAME, pe.permission_name),      
+    FORMATMESSAGE(''%s/%s/%s'', @@SERVERNAME, pe.permission_name, pe.state_desc),      
     pe.permission_name as permission_name,
     pe.state_desc AS permission_state
 FROM sys.server_permissions AS pe;'
@@ -599,7 +599,7 @@ SELECT @SQL = STUFF((
     SELECT ' UNION ALL
     SELECT 
         FORMATMESSAGE(''%s/%d'', @@SERVERNAME, sp.principal_id),
-        FORMATMESSAGE(''%s/%s'', @@SERVERNAME, perm.permission_name)
+        FORMATMESSAGE(''%s/%s/%s'', @@SERVERNAME, perm.permission_name, perm.state_desc)
     FROM sys.server_permissions AS perm
     INNER JOIN sys.server_principals AS sp
         ON perm.grantee_principal_id = sp.principal_id
@@ -636,7 +636,7 @@ DECLARE @SQL NVARCHAR(MAX) = N'';
 
 SELECT @SQL  = '
 SELECT DISTINCT 
-    FORMATMESSAGE(''%s/%s'', @@SERVERNAME, pe.permission_name),
+    FORMATMESSAGE(''%s/%s/%s'', @@SERVERNAME, pe.permission_name, pe.state_desc),
     @@SERVERNAME
 FROM sys.server_permissions AS pe;'
   
