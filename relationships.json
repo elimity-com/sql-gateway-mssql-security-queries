@@ -1,0 +1,74 @@
+[
+  {
+    "attributes": [],
+    "fromEntityType": "user",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\nSELECT ' UNION ALL\nSELECT           \n    FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME,  ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', grantee_principal_id),           \n    FORMATMESSAGE(''%s/%s/%d/%d/%d/%d/%d/%s/%s'', @@SERVERNAME,  ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', class, grantee_principal_id, grantor_principal_id, major_id, minor_id, dp.type, state)\nFROM ' + QUOTENAME(d.name) + '.sys.database_permissions dp inner join ' + QUOTENAME(d.name) + '.sys.database_principals p on dp.grantee_principal_id = p.principal_id\nwhere p.type <> ''R'' '\n        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0\n        FOR XML PATH(''), TYPE\n        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nexec sp_executesql @SQL",
+    "toEntityType": "databasePermission"
+  },
+  {
+    "attributes": [],
+    "fromEntityType": "user",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\nSELECT ' UNION ALL\nSELECT FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', member_principal_id) AS userid,\n       FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', role_principal_id) AS roleid        \n        FROM ' + QUOTENAME(d.name) + '.sys.database_role_members rm\ninner join ' + QUOTENAME(d.name) + '.sys.database_principals p\non rm.member_principal_id = p.principal_id WHERE p.type <> ''R'' '\n        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0\n        FOR XML PATH(''), TYPE\n        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nexec sp_executesql @SQL",
+    "toEntityType": "databaseRole"
+  },
+  {
+    "attributes": [],
+    "fromEntityType": "databaseRole",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\nSELECT ' UNION ALL\nSELECT           \n    FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME,  ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', grantee_principal_id),           \n    FORMATMESSAGE(''%s/%s/%d/%d/%d/%d/%d/%s/%s'', @@SERVERNAME,  ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', class, grantee_principal_id, grantor_principal_id, major_id, minor_id, dp.type, state)\nFROM ' + QUOTENAME(d.name) + '.sys.database_permissions dp inner join ' + QUOTENAME(d.name) + '.sys.database_principals p on dp.grantee_principal_id = p.principal_id\nwhere p.type = ''R'' '\n        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0\n        FOR XML PATH(''), TYPE\n        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nexec sp_executesql @SQL",
+    "toEntityType": "databasePermission"
+  },
+  {
+    "attributes": [],
+    "fromEntityType": "databasePermission",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\nSELECT ' UNION ALL\nSELECT           \n    FORMATMESSAGE(''%s/%s/%d/%d/%d/%d/%d/%s/%s'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', p.class, p.grantee_principal_id, p.grantor_principal_id, p.major_id, p.minor_id, p.type, p.state),           \n    FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', p.major_id)         \nFROM ' + QUOTENAME(d.name) + '.sys.database_permissions p JOIN ' +  QUOTENAME(d.name) + '.sys.all_objects o ON p.major_id = o.object_id'\n        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0\n        FOR XML PATH(''), TYPE\n        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nexec sp_executesql @SQL",
+    "toEntityType": "object"
+  },
+  {
+    "attributes": [],
+    "fromEntityType": "databasePermission",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\nSELECT ' UNION ALL\nSELECT\n    FORMATMESSAGE(''%s/%s/%d/%d/%d/%d/%d/%s/%s'', @@SERVERNAME,' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', class, grantee_principal_id, grantor_principal_id, major_id, minor_id, type, state) AS permissionid,\n  CAST(' + CAST(d.database_id AS VARCHAR(4)) + ' AS VARCHAR(4)) + ''/'' + ' + CHAR(39) + d.name + CHAR(39) + ' + ''/'' + @@SERVERNAME AS databaseid\n   \nFROM ' + QUOTENAME(d.name) + '.sys.database_permissions WHERE class = 0'\n        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0\n        FOR XML PATH(''), TYPE\n        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nexec sp_executesql @SQL",
+    "toEntityType": "database"
+  },
+  {
+    "attributes": [],
+    "fromEntityType": "object",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\nSELECT @SQL = STUFF((\nSELECT ' UNION ALL\nSELECT FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', object_id) as [dbname_objectid],\n              CAST(DB_ID( '+ CHAR(39) + d.name  + CHAR(39) + ' ) AS VARCHAR(4)) + ''/'' + ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ' + ''/'' +  @@servername    as [database_id]   \n        FROM ' + QUOTENAME(d.name) + '.sys.all_objects'\n        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0\n        FOR XML PATH(''), TYPE\n        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n \nexec sp_executesql @SQL",
+    "toEntityType": "database"
+  },
+  {
+    "attributes": [],
+    "fromEntityType": "user",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\n    SELECT ' UNION ALL\n    SELECT \n        FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', dp.principal_id) as user_id,\n        FORMATMESSAGE(''%s/%d'', @@SERVERNAME, sp.principal_id) as login_id\n    FROM ' + QUOTENAME(d.name) + '.sys.database_principals AS dp\n    INNER JOIN sys.server_principals AS sp\n        ON dp.sid = sp.sid\n    WHERE dp.sid IS NOT NULL\n      AND dp.type <> ''R''   -- filter out database roles\n      AND dp.name NOT IN (''sys'', ''guest'', ''INFORMATION_SCHEMA'', ''dbo'')'\n    FROM sys.databases d\n    WHERE d.database_id <> 2\n      AND d.state_desc = 'ONLINE'\n      AND d.is_read_only = 0\n    FOR XML PATH(''), TYPE\n).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nEXEC sys.sp_executesql @SQL;",
+    "toEntityType": "login"
+  },
+  {
+    "attributes": [],
+    "fromEntityType": "login",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\n    SELECT ' UNION ALL\n    SELECT\n        FORMATMESSAGE(''%s/%d'', @@SERVERNAME,  m.principal_id),\n        FORMATMESSAGE(''%s/%d'', @@SERVERNAME,  r.principal_id)\n    FROM sys.server_role_members rm\n    INNER JOIN sys.server_principals r\n        ON rm.role_principal_id = r.principal_id\n    INNER JOIN sys.server_principals m\n        ON rm.member_principal_id = m.principal_id'\n    FOR XML PATH(''), TYPE\n).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nEXEC sys.sp_executesql @SQL;",
+    "toEntityType": "serverRole"
+  },
+  {
+    "attributes": [],
+    "fromEntityType": "login",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\n    SELECT ' UNION ALL\n    SELECT \n        FORMATMESSAGE(''%s/%d'', @@SERVERNAME, sp.principal_id),\n        FORMATMESSAGE(''%s/%s/%s'', @@SERVERNAME, perm.permission_name, perm.state_desc)\n    FROM sys.server_permissions AS perm\n    INNER JOIN sys.server_principals AS sp\n        ON perm.grantee_principal_id = sp.principal_id\n    WHERE sp.type <> ''R'' '\n    FOR XML PATH(''), TYPE\n).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nEXEC sys.sp_executesql @SQL;",
+    "toEntityType": "serverPermission"
+  },
+  {
+    "attributes": [],
+    "fromEntityType": "serverRole",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL  = '\nSELECT \n    FORMATMESSAGE(''%s/%d'', @@SERVERNAME,  principal_id),\n    @@SERVERNAME\nFROM   sys.server_principals\nWHERE type = ''R'' '\n  \nexec sp_executesql @SQL",
+    "toEntityType": "instance"
+  },
+  {
+    "attributes": [],
+    "fromEntityType": "serverPermission",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL  = '\nSELECT DISTINCT \n    FORMATMESSAGE(''%s/%s/%s'', @@SERVERNAME, pe.permission_name, pe.state_desc),\n    @@SERVERNAME\nFROM sys.server_permissions AS pe;'\n  \nexec sp_executesql @SQL",
+    "toEntityType": "instance"
+  },
+  {
+    "attributes": [],
+    "fromEntityType": "instance",
+    "query": "SELECT \n    @@SERVERNAME,\n    CAST(database_id AS VARCHAR(4)) + '/' + name + '/' + @@SERVERNAME\nFROM sys.databases WHERE database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0",
+    "toEntityType": "database"
+  }
+]

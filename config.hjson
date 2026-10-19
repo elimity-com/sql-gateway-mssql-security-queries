@@ -557,7 +557,8 @@ SELECT @SQL = STUFF((
       AND dp.type <> ''R''   -- filter out database roles
       AND dp.name NOT IN (''sys'', ''guest'', ''INFORMATION_SCHEMA'', ''dbo'')'
     FROM sys.databases d
-    WHERE d.state_desc = 'ONLINE'
+    WHERE d.database_id <> 2
+      AND d.state_desc = 'ONLINE'
       AND d.is_read_only = 0
     FOR XML PATH(''), TYPE
 ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');

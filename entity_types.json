@@ -1,0 +1,187 @@
+[
+  {
+    "attributes": [
+      {
+        "id": "loginName",
+        "type": "string"
+      },
+      {
+        "id": "authenticationType",
+        "type": "string"
+      },
+      {
+        "id": "createdAt",
+        "type": "dateTime"
+      },
+      {
+        "id": "database",
+        "type": "string"
+      },
+      {
+        "id": "lastModifiedAt",
+        "type": "dateTime"
+      },
+      {
+        "id": "type",
+        "type": "string"
+      }
+    ],
+    "id": "user",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\nSELECT ' UNION ALL\nSELECT FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', principal_id),\n               p.name COLLATE DATABASE_DEFAULT,\n               l.name AS login_name,\n               authentication_type_desc,\n               create_date,\n               ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ',\n               modify_date,\n               type_desc\n        FROM ' + QUOTENAME(d.name) + '.sys.database_principals p\n        LEFT JOIN sys.syslogins l on p.sid = l.sid\n        WHERE type_desc <> ''DATABASE_ROLE'' '\n        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0\n        FOR XML PATH(''), TYPE\n        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nexec sp_executesql @SQL"
+  },
+  {
+    "attributes": [
+      {
+        "id": "authenticationType",
+        "type": "string"
+      },
+      {
+        "id": "createdAt",
+        "type": "dateTime"
+      },
+      {
+        "id": "database",
+        "type": "string"
+      },
+      {
+        "id": "lastModifiedAt",
+        "type": "dateTime"
+      },
+      {
+        "id": "type",
+        "type": "string"
+      }
+    ],
+    "id": "databaseRole",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\nSELECT ' UNION ALL\nSELECT FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', principal_id),\n               name COLLATE DATABASE_DEFAULT,\n               authentication_type_desc,\n               create_date,\n               ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ',\n               modify_date,\n               type_desc\n        FROM ' + QUOTENAME(d.name) + '.sys.database_principals WHERE type_desc = ''DATABASE_ROLE'' '\n        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0\n        FOR XML PATH(''), TYPE\n        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nexec sp_executesql @SQL"
+  },
+  {
+    "attributes": [
+      {
+        "id": "class",
+        "type": "string"
+      },
+      {
+        "id": "database",
+        "type": "string"
+      },
+      {
+        "id": "state",
+        "type": "string"
+      }
+    ],
+    "id": "databasePermission",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\nSELECT ' UNION ALL\nSELECT\n    FORMATMESSAGE(''%s/%s/%d/%d/%d/%d/%d/%s/%s'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', class, grantee_principal_id, grantor_principal_id, major_id, minor_id, type, state),\n    permission_name, \n    class_desc, \n    ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ',\n    state_desc         \nFROM ' + QUOTENAME(d.name) + '.sys.database_permissions'\n        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0\n        FOR XML PATH(''), TYPE\n        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nexec sp_executesql @SQL"
+  },
+  {
+    "attributes": [
+      {
+        "id": "createdAt",
+        "type": "dateTime"
+      },
+      {
+        "id": "database",
+        "type": "string"
+      },
+      {
+        "id": "lastModifiedAt",
+        "type": "dateTime"
+      },
+      {
+        "id": "msShipped",
+        "type": "boolean"
+      },
+      {
+        "id": "published",
+        "type": "boolean"
+      },
+      {
+        "id": "schemaPublished",
+        "type": "boolean"
+      },
+      {
+        "id": "type",
+        "type": "string"
+      }
+    ],
+    "id": "object",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL = STUFF((\nSELECT ' UNION ALL\nSELECT FORMATMESSAGE(''%s/%s/%d'', @@SERVERNAME, ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ', object_id) as [dbname_objectid],\n               name COLLATE DATABASE_DEFAULT as [name],\n               create_date,\n               ' + CHAR(39) + d.name COLLATE DATABASE_DEFAULT + CHAR(39) + ' as [DatabaseName],\n              modify_date, \n    is_ms_shipped,           \n    is_published, \n    is_schema_published, \n    type_desc         \n        FROM ' + QUOTENAME(d.name) + '.sys.all_objects'\n        from sys.databases d WHERE d.database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0\n        FOR XML PATH(''), TYPE\n        ).value('.', 'NVARCHAR(MAX)'), 1, 11, '');\n\nexec sp_executesql @SQL"
+  },
+  {
+    "attributes": [
+      {
+        "id": "server",
+        "type": "string"
+      }
+    ],
+    "id": "database",
+    "query": "SELECT \n    CAST(database_id AS VARCHAR(4)) + '/' + name + '/' + @@SERVERNAME, \n    name, \n    @@SERVERNAME AS ServerName \nFROM sys.databases WHERE database_id <> 2 and state_desc = 'ONLINE' and is_read_only = 0"
+  },
+  {
+    "attributes": [
+      {
+        "id": "sid",
+        "type": "string"
+      },
+      {
+        "id": "principal_id",
+        "type": "string"
+      },
+      {
+        "id": "createdAt",
+        "type": "dateTime"
+      },
+      {
+        "id": "type",
+        "type": "string"
+      },
+      {
+        "id": "is_disabled",
+        "type": "boolean"
+      }
+    ],
+    "id": "login",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL  = '\nSELECT FORMATMESSAGE(''%s/%d'', @@SERVERNAME,  principal_id),\n               name COLLATE DATABASE_DEFAULT as ''Login_name'',\n               CONVERT(VARCHAR(200), sid, 1),\n\t\t\t   principal_id,\n               create_date,             \n               type_desc,\n               is_disabled\n        FROM   sys.server_principals\nWHERE type <> ''R'' '\n  \nexec sp_executesql @SQL"
+  },
+  {
+    "attributes": [
+      {
+        "id": "sid",
+        "type": "string"
+      },
+      {
+        "id": "principal_id",
+        "type": "string"
+      },
+      {
+        "id": "createdAt",
+        "type": "dateTime"
+      },
+      {
+        "id": "type",
+        "type": "string"
+      },
+      {
+        "id": "is_disabled",
+        "type": "boolean"
+      }
+    ],
+    "id": "serverRole",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL  = '\nSELECT FORMATMESSAGE(''%s/%d'', @@SERVERNAME,  principal_id),\n               name COLLATE DATABASE_DEFAULT as ''Login_name'',\n               CONVERT(VARCHAR(200), sid, 1),\n\t\t\t   principal_id,\n               create_date,             \n               type_desc,\n               is_disabled\n        FROM   sys.server_principals\nWHERE type = ''R'' '\n  \nexec sp_executesql @SQL"
+  },
+  {
+    "attributes": [
+      {
+        "id": "state",
+        "type": "string"
+      }
+    ],
+    "id": "serverPermission",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL  = '\nSELECT DISTINCT \n    FORMATMESSAGE(''%s/%s/%s'', @@SERVERNAME, pe.permission_name, pe.state_desc),      \n    pe.permission_name as permission_name,\n    pe.state_desc AS permission_state\nFROM sys.server_permissions AS pe;'\n  \nexec sp_executesql @SQL"
+  },
+  {
+    "attributes": [],
+    "id": "instance",
+    "query": "DECLARE @SQL NVARCHAR(MAX) = N'';\n\nSELECT @SQL  = '\nSELECT @@SERVERNAME, @@SERVERNAME;'\n  \nexec sp_executesql @SQL"
+  }
+]
